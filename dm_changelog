@@ -1,0 +1,342 @@
+Changelog for DM_FILEIO and DM_ARRAY library:
+	- add new on top with date
+	- indicate library (DM_ARRAY, DM_FILEIO or DM if both are affected)
+	- indicate initials
+-------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
+Jan 29th, 2010 DM_ARRAY (JFS)
+	- added new routine dm_array_global_phase
+
+Jun 19th DM_FILEIO (JFS)
+	- added new routine dm_h5_comments_group_exists that checks existence
+	of comments group.
+
+	DM_ARRAY
+	- the two total_power routines now broadcast the total power to
+	all processes when using MPI.
+	
+May 20th DM_ARRAY (JFS)
+	- fixed one bug in dm_array_crop_2d_real
+
+	DM_FILEIO
+	- changed some stuff to make C++ compiler happy
+
+Apr 28th DM_ARRAY (JFS)
+	- added option to also seed imaginary part with random numbers using
+	dm_array_rand()
+
+Mar 14th DM_ARRAY (JFS)
+	- added fft_centered paramter to dm_array_load_gaussian. If it 
+	is set to 1 then the Gaussian will be loaded fft-centered. Otherwise
+	(0) it will be data-centered.
+
+Mar 9th DM_FILEIO (JFS)
+	- fixed problem with root process sending and receiving at the
+	same time when using INTERLEAVED_COMPLEX
+
+	DM_ARRAY
+	- forward and inverse fft plans now go from column input to 
+	column output. This means two additional transpose operations 
+	per cycle but at least our modulus constraint works then.
+
+Feb 25th DM_ARRAY (JFS)
+	- changed dm_array_fft so that it won't shift the array to 
+	data-centered when using fftw.
+
+Jan 27th DM_ARRAY (JFS)
+	- added new function dm_array_crop_2d_real that will square a real
+	array to offsets provided.
+	- fixed bug in dm_h5_write_spt where only root node would 
+	return with DM_FILEIO_SUCCESS.
+	
+Jan 23rd DM_ARRAY (JFS)
+	- added new function dm_array_square_sum_complex that will sum over
+	all elements of an array. If only one array is given then the result
+	will be the square sum of all complex pixels, if 2 arrays are given
+	then the result is the sum of array1(i)*conj(array2(i)).
+
+Jan 22nd DM_ARRAY (JFS)
+	- updated dm_array_total_power_complex to accept an optional array of
+	indices and an integer flag. If the array of indices is passed along, 
+	then it will calculate total_power from all indices where the optional
+	array == 1 (or == 0 if inverse flag is set to 1).
+	
+Jan 16th DM_FILEIO (JFS)
+	- updated dm_h5_write_itn so that it will only create the dataset 
+	when the user actually supplied it with a non-empty recon_errors
+	structure, i.e.recon_errors->npix > 0
+	
+Jan 13th DM_FILEIO (JFS)
+	- added recon_errors dataset to itn group
+	
+Jan 12th DM (JFS)
+	- moved dm_write_pngfile from dm_fileio to dm, renamed to dm_write_png
+	and edited so that it now accepts a real array structure as argument
+	and will convert that into an appropriate byte array.
+
+Jan 2nd DM_FILEIO (JFS)
+	- dm_write_pngfile is now compatible with the non-MPI version of 
+	the dm libraries
+
+	DM_ARRAY
+	- added new function dm_array_min_real that will return the minimum
+	value of a given real array.
+
+Dec 29th DM_FILEIO (JFS)
+	- fixed bug in dm_h5_read_spt. Wrong datatype was used when
+	sending the slices to different processes.
+
+Dec 21st DM_FILEIO (JFS)
+	- fixed bug for distributed reading and writing where root process
+	was trying to send and receive at the same time.
+
+Dec 17th DM_FILEIO (JFS)
+	- changed ainfo structure members. Eliminated 
+	camera_x/y/_pixelsize_m_array. Changed x/ycenter_array to 
+	x/ycenter_offset_pixels_array.
+
+Dec 16th DM (JFS)
+	- added new type dm_array_int_struct and its memory allocation 
+	macro DM_ARRAY_INT_STRUCT_INIT.
+
+Dec 12th DM_ARRAY (JFS)
+	- added new routine dm_array_reassign_real that will reassign 
+	an initialized structure to the memory of a different structure 
+	and copy all structure tags with it. It is a dangerous routine but 
+	comes in very handy when you want to change sizes of an array without
+	changing its name.
+
+	DM
+	- changed the DM_ARRAY_*_STRUCT_INIT macros to get a pointer to 
+	the structure rather than just the structure. 
+	
+Dec 3rd DM_ARRAY (JFS)
+	- added to dm_array_transfer_magnitudes that it will check if
+	old magnitudes are 0. In this case it will add the new magnitude to 
+	the real part, effectively choosing the phase to be 0.
+	- added new macros DM_ARRAY_COMPLEX/REAL/BYTE_STRUCT_INIT that will
+	allocate memory and set the local_npix tag in the structure.
+	- changed all functions in dm_array to loop through local_npix and 
+	removed redundant code
+	- fixed some problems for fftw due to new macros
+
+	DM_FILEIO
+	- fixed bug with n_names_max not being known on all processes in 
+	function dm_h5_read_comments.
+	
+Nov 17th DM_ARRAY (JFS)
+	- added and tested dm_array_transfer_magnitudes
+
+Nov 13th DM_ARRAY (JFS)
+	- added some command-line arguments to dm_test_array
+
+Nov 12th DM_ARRAY (JFS)
+	- fixed bug in dm_array_fft. Defninition of ptr_forward_plan of 
+	dm_array_complex_struct should not be a pointer again since at
+	least in dist_fft it is already returned as a pointer. This solves
+	all sorts of bugs: double precision, timing and such. Also can
+	destroy plans now.
+	NOTE: need to check if this breaks fftw now.
+	- checked fftw - works!!
+	
+Nov 11th DM_ARRAY (JFS)
+	- parallelized dm_array_load_gaussian
+
+Nov 10th DM_ARRAY (JFS)
+	- changed routine dm_array_multiply_complex to correctly 
+	calculate product of complex numbers.
+	- changed declaration of total_power and local_power to 
+	dm_array_real since it would not be returned correctly if defining
+	as double and then typecasting it in the end.
+	- tested all new routines using MPI single-precision on 
+	cluster
+
+Nov 9th DM_ARRAY (JFS)
+	- added routine to multiply complex array by byte array
+	dm_array_multiply_complex_byte
+	- renamed dm_array_matrix_multiply_by_element -> 
+	dm_array_multiply_complex
+	- programmed routine that finds magnitude of real array and 
+	optionally converts from intensities, dm_array_magnitude_real
+	- renamed dm_array_magnitude -> dm_array_magnitude_complex
+	- added 2 routines that subtract or add two complex arrays.
+	dm_array_subtract_complex, dm_array_add_complex
+	- added 2 routines that subtract or add two real arrays.
+	dm_array_subtract_real, dm_array_add_real
+	- added routine to copy a real array, dm_array_copy_real.
+	- renamed dm_array_copy -> dm_array_copy_complex
+	- added routine that finds max of real array, dm_array_max_real
+	- added routine to calculate total power of all elements of
+	a real array. Optionally accepts intensity input.
+	dm_array_total_power_real
+	- renamed dm_array_total_power -> dm_array_total_power_complex
+	- added new function to fill the real part of a complex array with
+	random numbers, dm_array_rand
+	- added routine to zero real arrays, dm_array_zero_real
+	- renamed routine dm_array_zero -> dm_array_zero_complex
+
+	DM
+	- added random number generator according to guidelines 
+	described in Sec.7.1 of Numerical Recipes. dm_rand
+	
+Sep 9th DM_ARRAY (JFS)
+	- went through all snippets of MPI code to make sure correct 
+	number of elements is processed
+	- modified dm_test_array.c to comply with all changes to the
+	library functions
+	- removed dm_array_dist_fft_set_data
+
+	DM
+	- moved all included standard libraries into dm.h
+
+Sep 5th DM (JFS)
+	- tested interplay between DM_FILEIO and DM_ARRAY with 2d array
+	      
+Sep 4th DM_ARRAY (JFS)
+	- the array routines now take care of dividing by p wherever 
+	necessary.
+	- modified the DM_ARRAY_COMPLEX macros to hand over p
+
+	DM
+	- new routine test_hdf5_fft.c to test interplay of libraries
+	
+Aug 28th DM_FILEIO (JFS)
+	- dm_h5_write_itn is parallelized
+	- so are dm_h5_read_itn_info and dm_h5_read_itn
+	- looked at some other functions in library
+
+	DM
+	- added new file dm.c that has new functions dm_init and
+	dm_exit. They replace dm_array_init and dm_array_exit, since
+	we need them for both dm_array and dm_fileio libraries.
+	- removed dm_array_init/exit from dm_array library
+
+Aug 27th DM_FILEIO (JFS)
+	- dm_h5_read_spt now working distributed
+	- dm_h5_?_group_exists now has all processes return 0 or 1 not
+	just root.
+	- dm_h5_write_itn: halfway parallelized (updating an existing 
+	itn needs to be done).
+	
+Aug 26th DM_FILEIO (JFS)
+	- fixed problem with CLAs by making sure that all processes report
+	DM_FILEIO_SUCCESS.
+	- fixed problem with adi_error_array not being read-out correctly
+	across the nodes.
+	
+Aug 25th DM_FILEIO (JFS)
+	- dm_h5_write_spt and dm_h5_read_adi(_info) parallelized.
+	
+Aug 21st DM_FILEIO (JFS)
+	- started working on distributed file-I/O. So far dm_h5_write_adi 
+	should be able to handle it. 
+	
+Aug 20th DM_FILEIO (JFS)
+	- added new macro DM_ARRAY_REAL_MALLOC that will allocate the
+	right number of elements, i.e. total number/processes w/o having
+	the user have to worry about it.
+	- changed existing macro DM_ARRAY_COMPLEX_MALLOC to work the same 
+	way.
+
+Jul 1st DM_ARRAY (JFS)
+	- removed non-distributed output if MPI is used, i.e. 
+	defining __MPI__ always includes __DISTRIBUTED__
+	- fixed memory allocation problem for dist_fft
+	- specified convention how the arrays are to be distributed
+	
+Jun 12th DM_ARRAY (JFS)
+	- added functions for timing dm_time and dm_time_diff.
+	- added fftwf versions for single precision for malloc and free.
+	
+May 28th DM_FILEIO (JFS)
+	- when opening a file consider that it might be of Double precision.
+	If so then compile with -DDM_ARRAY_DOUBLE!!
+
+May 12th DM_ARRAY (JFS)
+	- removed unnecessary arguments from dm_array_init
+	
+PROGRESS REPORT - May 12th DM_ARRAY (JFS)
+	- ok:	single-processor using fftw
+		multiple processor, non-distributed using dist_fft, tested
+		up to 2048^2
+	- bugs:	multiple processor, distributed using dist_fft for 3D arrays
+		destroying fft plans whe using dist_fft
+		
+May 2nd DM_ARRAY (JFS)
+	- changed philosophy behind do_distributed. When using MPI one either
+	has the array allocated by root process. Then one wants to have ffts 
+	distributed but not the rest (takes to long). On the other hand, 
+	if array is big then it should be already spread out over nodes before
+	calling dm_array routines. In this case you want all processes to 
+	do their part in a call to any routine in dm_array.c
+	=> do_distributed is replaces by define __DISTRIBUTED__ at compile
+	time. Apart from dm_array_fft everything will then be executed by
+	root only (not distributed) or by all processes (distributed).
+	
+May 1st DM_ARRAY (JFS)
+	- cleaned up code a bit
+
+Apr 28th DM_ARRAY (JFS)
+	- in all dm_array.c except for gaussian and fft, all operations are 
+	executed by rank 0 only unless do_distributed is specified. (This of 
+	course is only valid if MPI is defined)
+	- added function dm_array_dist_fft_set_data that will distribute the 
+	data over the processes accordingly. It will use MPI_Scatter to 
+	distribute the array elements.
+	
+Apr 25th DM_ARRAY (JFS)
+	- fixed shifting problem. Now array will be shifted to the right by 
+	1/2 in each dimension after forward transform and will be shifted back
+	before inverse transform
+	
+Apr 24th DM_ARRAY (JFS):
+	- dm_array_complex is now of type fftw_complex (fftwf_complex), changed
+	macros c_im, c_re accordingly
+	- dm_array_fft will use a local copy to determine the plan for fftw
+	- some issues with shifting the array after FFT
+	
+Apr 18th DM_FILEIO (JFS)
+	- no longer lost in byte-order. Changed all read/write routines to 
+	use local datatypes, except for the string arrays which seem to 
+	work without it.
+	
+Apr 10th DM_FILEIO (JFS)
+	- changed Makefile to get dm_test_fileio to work on cluster
+	- added ifndef statement to dm.h since we only need to define 
+	MPI_Comm if both MPI and DIST_FFT are NOT defined.
+	
+Apr 7th DM_FILEIO (JFS)
+	- the Apr 6th update is now also working for the /itn group. Note that
+	currently the arrays can only get bigger for some reason. 
+	- the corresponding structures are now also updated. User should make
+	sure that they are correctly initialized.
+	- fixed bug of permuting dimensions when reading
+	- added missing tags to adi_struct in dm_h5_insert_adi_struct_members
+	m
+Apr 6th DM_FILEIO (JFS)
+	- dm_h5_write_adi now checks wether or not an /adi group already 
+	exists. If it does then it will simply update the adi-array. The size
+	can be different but the dimensionality and the datatype have to be
+	the same.
+	- the same functionality has been implemented in dm_h5_write_spt except
+	for that the datatype is always assumed to be of type byte.
+
+Apr 2nd DM_FILEIO (JFS)
+	- added new function dm_h5_add_comments that will add comments to an
+	existing set of comments in an opened h5 file.
+	- tested comments creating, updating and reading with C and IDL
+	- created adi_array of unlimited size in C. It is based on a non-array
+	datatype, so need to change in IDL again.
+
+Apr 1st DM_FILEIO (JFS)
+	- changed comment_strings in dm_h5_read_comments and 
+	dm_h5_write_comments to variable length datatype and tested against 
+	IDL versions.
+	- added new function dm_h5_create that creates new h5 files and 
+	changed dm_h5_openwrite to open existing files with write access.
+	- renamed dm_h5_write_comments to dm_h5_create_comments.
+	
+Mar 27th DM_FILEIO (JFS)
+	- added structure members no_background, dk_by_pix, merge_first to 
+	ainfo struct in dm.h. Updated the corresponding functions in 
+	dm_fileio.c.
