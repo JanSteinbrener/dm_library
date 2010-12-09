@@ -248,19 +248,23 @@ typedef struct {
  * This way the functions should still work even
  * if the user did not define an array.
  */
-#define DM_AINFO_VERSION 1
-#define AINFO_TAGS 11
+#define DM_AINFO_VERSION 2
+#define AINFO_TAGS 15
 typedef struct {
   char *file_directory;
   char *filename_array;
   char *systime_array;
   double *theta_x_radians_array;
+  double *theta_y_radians_array;
+  double *theta_z_radians_array;
   double *xcenter_offset_pixels_array;
   double *ycenter_offset_pixels_array;
   int file_directory_flag;
   int filenames_offset;
   int systimes_offset;
   int theta_x_offset;
+  int theta_y_offset;
+  int theta_z_offset;
   int xcenter_offset;
   int ycenter_offset;
   int n_frames;

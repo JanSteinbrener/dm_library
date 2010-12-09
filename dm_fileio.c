@@ -773,6 +773,52 @@ int dm_h5_write_ainfo(hid_t h5_file_id,
       } 
       H5Dclose(dataset);
 
+      if (DM_AINFO_VERSION > 1) {
+	if ((dataset = H5Dcreate(ainfo_group,"theta_y_radians_array",
+				 dbl_datatype,dblarr_dataspace,
+				 H5P_DEFAULT)) < 0) {
+          strcpy(error_string,"H5Dcreate(theta_y_radians_array) error");
+          H5Dclose(dataset);
+          H5Sclose(dblarr_dataspace);
+          H5Tclose(dbl_datatype);
+          H5Gclose(ainfo_group);
+          return(DM_FILEIO_FAILURE);
+	}
+	if ((status = H5Dwrite(dataset,dbl_datatype,
+			       H5S_ALL,H5S_ALL,H5P_DEFAULT,
+			       ptr_ainfo_struct->theta_y_radians_array)) < 0) {
+          strcpy(error_string,"H5Dwrite(theta_y_radians_array) error");
+          H5Dclose(dataset);
+          H5Sclose(dblarr_dataspace);
+          H5Tclose(dbl_datatype);
+          H5Gclose(ainfo_group);
+          return(DM_FILEIO_FAILURE);
+	} 
+	H5Dclose(dataset);
+	
+	if ((dataset = H5Dcreate(ainfo_group,"theta_z_radians_array",
+				 dbl_datatype,dblarr_dataspace,
+				 H5P_DEFAULT)) < 0) {
+          strcpy(error_string,"H5Dcreate(theta_z_radians_array) error");
+          H5Dclose(dataset);
+          H5Sclose(dblarr_dataspace);
+          H5Tclose(dbl_datatype);
+          H5Gclose(ainfo_group);
+          return(DM_FILEIO_FAILURE);
+	}
+	if ((status = H5Dwrite(dataset,dbl_datatype,
+			       H5S_ALL,H5S_ALL,H5P_DEFAULT,
+			       ptr_ainfo_struct->theta_z_radians_array)) < 0) {
+          strcpy(error_string,"H5Dwrite(theta_z_radians_array) error");
+          H5Dclose(dataset);
+          H5Sclose(dblarr_dataspace);
+          H5Tclose(dbl_datatype);
+          H5Gclose(ainfo_group);
+          return(DM_FILEIO_FAILURE);
+	} 
+	H5Dclose(dataset);
+      } /* endif(DM_AINFO_VERSION > 1) */
+
       if ((dataset = H5Dcreate(ainfo_group,"xcenter_offset_pixels_array",
                                dbl_datatype,dblarr_dataspace,
                                H5P_DEFAULT)) < 0) {
@@ -4939,6 +4985,56 @@ int dm_h5_read_ainfo(hid_t h5_file_id,
               *(local_double_array + i_string);
       }
 
+      if (DM_AINFO_VERSION > 1) {
+	if ((dataset = H5Dopen(ainfo_group,"theta_y_radians_array")) < 0) {
+          strcpy(error_string,"H5Aopen(theta_y_radians_array) error");
+          H5Dclose(dataset);
+          H5Gclose(ainfo_group);
+          free(local_double_array);
+          return(DM_FILEIO_FAILURE);
+	}
+	if ((status = H5Dread(dataset,H5T_NATIVE_DOUBLE,
+			      H5S_ALL,H5S_ALL,H5P_DEFAULT,
+			      local_double_array)) < 0) {
+          strcpy(error_string,"H5Aread(theta_y_radians_array) error");
+          H5Dclose(dataset);
+          H5Gclose(ainfo_group);
+          free(local_double_array);
+          return(DM_FILEIO_FAILURE);
+	}
+	H5Dclose(dataset);
+	
+	/* Now copy the values to ainfo_struct */
+	for (i_string=0; i_string<local_n_frames; i_string++) {
+          *(ptr_ainfo_struct->theta_y_radians_array +i_string) = 
+	    *(local_double_array + i_string);
+	}
+	
+	if ((dataset = H5Dopen(ainfo_group,"theta_z_radians_array")) < 0) {
+          strcpy(error_string,"H5Aopen(theta_z_radians_array) error");
+          H5Dclose(dataset);
+          H5Gclose(ainfo_group);
+          free(local_double_array);
+          return(DM_FILEIO_FAILURE);
+	}
+	if ((status = H5Dread(dataset,H5T_NATIVE_DOUBLE,
+			      H5S_ALL,H5S_ALL,H5P_DEFAULT,
+			      local_double_array)) < 0) {
+          strcpy(error_string,"H5Aread(theta_z_radians_array) error");
+          H5Dclose(dataset);
+          H5Gclose(ainfo_group);
+          free(local_double_array);
+          return(DM_FILEIO_FAILURE);
+	}
+	H5Dclose(dataset);
+	
+	/* Now copy the values to ainfo_struct */
+	for (i_string=0; i_string<local_n_frames; i_string++) {
+          *(ptr_ainfo_struct->theta_z_radians_array +i_string) = 
+	    *(local_double_array + i_string);
+	}
+      } /* endif(DM_AINFO_VERSION > 1) */
+
       if ((dataset = H5Dopen(ainfo_group,"xcenter_offset_pixels_array")) < 0) {
           strcpy(error_string,"H5Aopen(xcenter_offset_pixels_array) error");
           H5Dclose(dataset);
@@ -7177,12 +7273,14 @@ void dm_h5_insert_adi_struct_members(hid_t datatype)
   H5Tinsert(datatype,"theta_x_radians", 
 	    HOFFSET(dm_adi_struct,theta_x_radians),
 	    H5T_NATIVE_DOUBLE);
-  H5Tinsert(datatype,"theta_y_radians", 
-	    HOFFSET(dm_adi_struct,theta_y_radians),
-	    H5T_NATIVE_DOUBLE);
-  H5Tinsert(datatype,"theta_z_radians", 
-	    HOFFSET(dm_adi_struct,theta_z_radians),
-	    H5T_NATIVE_DOUBLE);
+  if (DM_AINFO_VERSION > 1) {
+    H5Tinsert(datatype,"theta_y_radians", 
+	      HOFFSET(dm_adi_struct,theta_y_radians),
+	      H5T_NATIVE_DOUBLE);
+    H5Tinsert(datatype,"theta_z_radians", 
+	      HOFFSET(dm_adi_struct,theta_z_radians),
+	      H5T_NATIVE_DOUBLE);
+  } /* endif(DM_AINFO_VERSION > 1) */
   H5Tinsert(datatype,"xcenter_offset_pixels", 
 	    HOFFSET(dm_adi_struct,xcenter_offset_pixels),
 	    H5T_NATIVE_DOUBLE);
@@ -7364,6 +7462,10 @@ void dm_clear_ainfo(dm_ainfo_struct *ptr_ainfo_struct)
    }
    for (i_char=0; i_char<(ptr_ainfo_struct->n_frames_max); i_char++) {
        *(ptr_ainfo_struct->theta_x_radians_array) = (double) 0;
+       if (DM_AINFO_VERSION > 1) {
+	 *(ptr_ainfo_struct->theta_y_radians_array) = (double) 0;
+	 *(ptr_ainfo_struct->theta_z_radians_array) = (double) 0;
+       } /* endif(DM_AINFO_VERSION > 1) */
        *(ptr_ainfo_struct->xcenter_offset_pixels_array) = (double) 0;
        *(ptr_ainfo_struct->ycenter_offset_pixels_array) = (double) 0;  
    }
@@ -7372,6 +7474,10 @@ void dm_clear_ainfo(dm_ainfo_struct *ptr_ainfo_struct)
    ptr_ainfo_struct->filenames_offset = 0;
    ptr_ainfo_struct->systimes_offset = 0;
    ptr_ainfo_struct->theta_x_offset = 0;
+   if (DM_AINFO_VERSION > 1) {
+     ptr_ainfo_struct->theta_y_offset = 0;
+     ptr_ainfo_struct->theta_z_offset = 0;
+   } /* endif(DM_AINFO_VERSION > 1) */
    ptr_ainfo_struct->xcenter_offset = 0;
    ptr_ainfo_struct->ycenter_offset = 0;
 }
@@ -7448,6 +7554,14 @@ int dm_add_double_to_ainfo(char *tagname,
     *(ptr_ainfo_struct->theta_x_radians_array 
       + ptr_ainfo_struct->theta_x_offset) = double_to_add;
     ptr_ainfo_struct->theta_x_offset++;
+  } else if ((DM_AINFO_VERSION > 1) && (strcmp(tagname,"theta_y") == 0)) {
+    *(ptr_ainfo_struct->theta_y_radians_array 
+      + ptr_ainfo_struct->theta_y_offset) = double_to_add;
+    ptr_ainfo_struct->theta_y_offset++;
+  } else if ((DM_AINFO_VERSION > 1) && (strcmp(tagname,"theta_z") == 0)) {
+    *(ptr_ainfo_struct->theta_z_radians_array 
+      + ptr_ainfo_struct->theta_z_offset) = double_to_add;
+    ptr_ainfo_struct->theta_z_offset++;
   } else if (strcmp(tagname,"xcenter") == 0) {
     *(ptr_ainfo_struct->xcenter_offset_pixels_array 
       + ptr_ainfo_struct->xcenter_offset) = double_to_add;
@@ -7676,6 +7790,22 @@ void dm_print_ainfo(FILE *fp_out,
                   trailing_string);
       }
       fprintf(fp_out,"\n");
+      
+      if (DM_AINFO_VERSION > 1) {
+	for (i_string=0; i_string<(ptr_ainfo_struct->n_frames); i_string++) {
+	  fprintf(fp_out,"%s%f%s",preceding_string,
+		  *((ptr_ainfo_struct->theta_y_radians_array)+i_string),
+		  trailing_string);
+	}
+	fprintf(fp_out,"\n");
+	
+	for (i_string=0; i_string<(ptr_ainfo_struct->n_frames); i_string++) {
+	  fprintf(fp_out,"%s%f%s",preceding_string,
+		  *((ptr_ainfo_struct->theta_z_radians_array)+i_string),
+		  trailing_string);
+	}
+	fprintf(fp_out,"\n");
+      }
 
       for (i_string=0; i_string<(ptr_ainfo_struct->n_frames); i_string++) {
           fprintf(fp_out,"%s%f%s",preceding_string,
@@ -7730,6 +7860,20 @@ int dm_check_ainfo(dm_ainfo_struct *ptr_ainfo_struct,
             return(DM_FILEIO_FAILURE);
         }
 
+	if (DM_AINFO_VERSION > 1) {
+	  if (ptr_ainfo_struct->theta_y_offset > ptr_ainfo_struct->n_frames) {
+            strcpy(error_string,
+		   "dm_check_ainfo: theta_y_radians_array too long");
+            return(DM_FILEIO_FAILURE);
+	  }
+	  
+	  if (ptr_ainfo_struct->theta_z_offset > ptr_ainfo_struct->n_frames) {
+            strcpy(error_string,
+		   "dm_check_ainfo: theta_z_radians_array too long");
+            return(DM_FILEIO_FAILURE);
+	  }
+	}
+
         if (ptr_ainfo_struct->xcenter_offset > ptr_ainfo_struct->n_frames) {
             strcpy(error_string,"dm_check_ainfo: xcenter_array too long");
             return(DM_FILEIO_FAILURE);
@@ -7768,6 +7912,24 @@ int dm_check_ainfo(dm_ainfo_struct *ptr_ainfo_struct,
                 ptr_ainfo_struct->theta_x_offset++;
             }
         }
+
+	if (DM_AINFO_VERSION > 1) {
+	  if (ptr_ainfo_struct->theta_y_offset < ptr_ainfo_struct->n_frames) {
+            for (i_array=ptr_ainfo_struct->theta_y_offset; 
+                 i_array < ptr_ainfo_struct->n_frames; i_array++ ) {
+	      *(ptr_ainfo_struct->theta_y_radians_array +i_array) = -9999.99;
+	      ptr_ainfo_struct->theta_y_offset++;
+            }
+	  }
+	  
+	  if (ptr_ainfo_struct->theta_z_offset < ptr_ainfo_struct->n_frames) {
+            for (i_array=ptr_ainfo_struct->theta_z_offset; 
+                 i_array < ptr_ainfo_struct->n_frames; i_array++ ) {
+	      *(ptr_ainfo_struct->theta_z_radians_array +i_array) = -9999.99;
+	      ptr_ainfo_struct->theta_z_offset++;
+            }
+	  }
+	}
 
         if (ptr_ainfo_struct->xcenter_offset < ptr_ainfo_struct->n_frames) {
             for (i_array=ptr_ainfo_struct->xcenter_offset; 
